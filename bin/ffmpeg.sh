@@ -21,7 +21,7 @@ while (( "$#" )); do
         continue
     fi
     
-    ffmpeg -i "$fname" -vcodec libx264 -strict -2 -crf "$AUDIO" -b:a "$AUDIO"K "$out"
+    ffmpeg -i "$fname" -vcodec libx264 -strict -2 -crf $VIDEO -b:a "$AUDIO"K "$out"
     
     #rm -f "$out"
     
