@@ -1,7 +1,9 @@
 #!/bin/bash
 
-if [ -f "combined.mp4" ]; then
-	>&2 echo "combined.mp4 exists!" && exit 1
+fname=`echo "$1" | sed -r "s_.+/__" | sed -r "s/\.(.+)$/.concat.\1/"`
+
+if [ -f "$fname" ]; then
+	>&2 echo "$fname exists!" && exit 1
 fi
 
 echo '' > fnames.txt
@@ -13,7 +15,7 @@ done
 
 sed -i -r "s_'.+/_'_" fnames.txt
 
-ffmpeg -f concat -i fnames.txt  -c copy combined.mp4
+ffmpeg -f concat -i fnames.txt  -c copy "$fname"
 # ffmpeg -i combined.mp4 -r 30 -c:v libx264 -strict -2 -crf 15 combined.out.mp4
 
 rm fnames.txt

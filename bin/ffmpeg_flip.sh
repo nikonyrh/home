@@ -4,12 +4,12 @@ while (( "$#" )); do
     fname="$1"
     shift
     
-    if [[ "$fname" = *.out.* ]]; then
-        echo "Skipping $fname (*.out.*)"
+    if [[ "$fname" = *.flip.* ]]; then
+        echo "Skipping $fname (*.flip.*)"
         continue
     fi
     
-    out=`echo "$fname" | sed -r 's/\.([^\.]+)/.out.mp4/'`
+    out=`echo "$fname" | sed -r 's/\.([^\.]+)/.flip.\1/'`
     
     if [ -f "$out" ]; then
         echo "Skipping $fname ($out exists)"
