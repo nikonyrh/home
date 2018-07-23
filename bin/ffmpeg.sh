@@ -4,9 +4,25 @@ VIDEO=$1
 AUDIO=$2
 shift 2
 
-ARGS="-vcodec libx264 -strict -2 -crf $VIDEO -b:a ${AUDIO}K"
+FPS=60
+CODEC=x265
 
-ARGS="$ARGS -r 30"
+CONTINUE=1
+
+while (( "$#" )) && [ $CONTINUE = 1 ]; do
+    case "$1" in
+        "--fps")
+            FPS=$2
+            shift 2
+            ;;
+        *)
+            CONTINUE=0
+    esac
+done
+
+
+ARGS="-vcodec lib$CODEC -strict -2 -crf $VIDEO -b:a ${AUDIO}K -r $FPS"
+# echo $ARGS && exit 0
 
 while (( "$#" )); do
     fname="$1"
@@ -17,7 +33,7 @@ while (( "$#" )); do
         continue
     fi
     
-    out=`echo "$fname" | sed -r "s/\.([^\.]+)/.out_$VIDEO.\1/"`
+    out=`echo "$fname" | sed -r "s/\.([^\.]+)/.out_$VIDEO.$CODEC.\1/"`
     
     if [ -f "$out" ]; then
         echo "Skipping $fname ($out exists)"
