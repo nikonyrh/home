@@ -5,9 +5,12 @@ AUDIO=$2
 shift 2
 
 FPS=60
-CODEC=x265
+CODEC=x264
+RES=
 
 CONTINUE=1
+
+
 
 while (( "$#" )) && [ $CONTINUE = 1 ]; do
     case "$1" in
@@ -15,13 +18,21 @@ while (( "$#" )) && [ $CONTINUE = 1 ]; do
             FPS=$2
             shift 2
             ;;
+        "--codec")
+            CODEC=$2
+            shift 2
+            ;;
+        "--resolution")
+            RES="-vf scale=$2:$3"
+            shift 3
+            ;;
         *)
             CONTINUE=0
     esac
 done
 
 
-ARGS="-vcodec lib$CODEC -strict -2 -crf $VIDEO -b:a ${AUDIO}K -r $FPS"
+ARGS="-vcodec lib$CODEC -strict -2 -crf $VIDEO -movflags faststart -b:a ${AUDIO}K -r $FPS $RES"
 # echo $ARGS && exit 0
 
 while (( "$#" )); do
