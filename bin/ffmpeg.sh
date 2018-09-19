@@ -9,7 +9,7 @@ CODEC=x264
 RES=
 
 CONTINUE=1
-
+TARGET_DIR=.
 
 
 while (( "$#" )) && [ $CONTINUE = 1 ]; do
@@ -25,6 +25,10 @@ while (( "$#" )) && [ $CONTINUE = 1 ]; do
         "--resolution")
             RES="-vf scale=$2:$3"
             shift 3
+            ;;
+        "--dir")
+            TARGET_DIR=$2
+            shift 2
             ;;
         *)
             CONTINUE=0
@@ -45,7 +49,8 @@ while (( "$#" )); do
     fi
     
     out=`echo "$fname" | sed -r "s/\.([^\.]+)/.out_$VIDEO.$CODEC.\1/"`
-    
+    out="$TARGET_DIR/$out"
+
     if [ -f "$out" ]; then
         echo "Skipping $fname ($out exists)"
         continue
