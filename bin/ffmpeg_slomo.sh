@@ -7,6 +7,19 @@ shift 3
 
 CODEC=x264
 
+CONTINUE=1
+while (( "$#" )) && [ $CONTINUE = 1 ]; do
+    case "$1" in
+        "--codec")
+            CODEC=$2
+            shift 2
+            ;;
+        *)
+            CONTINUE=0
+    esac
+done
+
+
 ARGS="-vcodec lib$CODEC -strict -2 -crf $VIDEO -an -vf setpts=$MULT*PTS -r $FPS"
 # echo $ARGS && exit 0
 
@@ -27,5 +40,6 @@ while (( "$#" )); do
     fi
     
     ffmpeg -i "$fname" $ARGS "$out"
+    #break
 done
 

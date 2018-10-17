@@ -7,11 +7,9 @@ shift 2
 FPS=60
 CODEC=x264
 RES=
-
-CONTINUE=1
 TARGET_DIR=.
 
-
+CONTINUE=1
 while (( "$#" )) && [ $CONTINUE = 1 ]; do
     case "$1" in
         "--fps")
