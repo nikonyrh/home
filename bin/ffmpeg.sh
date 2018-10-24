@@ -9,6 +9,8 @@ CUDA=
 CODEC=x264
 RES=
 TARGET_DIR=.
+ARGS=
+CLR_ARGS=
 
 CONTINUE=1
 while (( "$#" )) && [ $CONTINUE = 1 ]; do
@@ -23,6 +25,10 @@ while (( "$#" )) && [ $CONTINUE = 1 ]; do
             fi
             
             CODEC=$2
+            if [ "$CODEC" = "x265" ]; then
+                # ref. https://stackoverflow.com/a/47901085/3731823
+                CLR_ARGS='-x265-params range=full -dst_range 1 -pix_fmt yuv420p'
+            fi
             shift 2
             ;;
         "--resolution")
@@ -31,6 +37,11 @@ while (( "$#" )) && [ $CONTINUE = 1 ]; do
             ;;
         "--dir")
             TARGET_DIR=$2
+            mkdir -p $TARGET_DIR
+            shift 2
+            ;;
+        "--t")
+            ARGS="$ARGS -ss 00:00:0.0 -t $2"
             shift 2
             ;;
         "-cuda")
@@ -49,17 +60,25 @@ while (( "$#" )) && [ $CONTINUE = 1 ]; do
     esac
 done
 
-if [ "$CUDA" = "" ]; then
-    ARGS="-vcodec lib$CODEC -strict -2 -crf $VIDEO -movflags faststart -b:a ${AUDIO}K $FPS $RES"
-else
-    VIDEO_MIN=$(($VIDEO - 1))
-    VIDEO_MAX=$(($VIDEO + 1))
-    
-    # ref. http://ntown.at/de/knowledgebase/cuda-gpu-accelerated-h264-h265-hevc-video-encoding-with-ffmpeg/
-    ARGS="-c:v $CODEC -rc vbr_hq -qmin:v $VIDEO_MIN -qmax:v $VIDEO_MAX -pix_fmt yuv420p -movflags faststart -b:a ${AUDIO}K $FPS $RES"
+if ! [ -f "$1" ]; then
+    >&2 echo "File $1 not found!" && exit 1
 fi
 
-# echo $ARGS && exit 0
+#VIDEO_MIN=$(($VIDEO - 1))
+#VIDEO_MAX=$(($VIDEO + 1))
+#VIDEO_Q="-rc vbr_hq -qmin:v $VIDEO_MIN -qmax:v $VIDEO_MAX"
+
+VIDEO_Q="-crf $VIDEO"
+
+if [ "$CUDA" = "" ]; then
+    ARGS="$ARGS -vcodec lib$CODEC -strict -2 $VIDEO_Q $CLR_ARGS -movflags faststart -b:a ${AUDIO}K $FPS $RES"
+else
+    # ref. http://ntown.at/de/knowledgebase/cuda-gpu-accelerated-h264-h265-hevc-video-encoding-with-ffmpeg/
+    ARGS="$ARGS -c:v $CODEC $VIDEO_Q -pix_fmt yuv420p -movflags faststart -b:a ${AUDIO}K $FPS $RES"
+fi
+
+
+#echo $ARGS && exit 0
 
 
 while (( "$#" )); do
@@ -79,9 +98,6 @@ while (( "$#" )); do
         continue
     fi
     
-    ffmpeg $CUDA -i "$fname" $ARGS "$out"
-    
-    #ffmpeg -i "$fname" -vf hqdn3d=7 -vcodec libx264 -strict -2 -crf 23 -b:a 192K "$out"
-    #ffmpeg -i "$fname" -vf transpose=1 -vcodec libx264 -strict -2 -crf 18 -b:a 192K "$out"
+    taskset 127 ffmpeg $CUDA -i "$fname" $ARGS "$out"
 done
 
