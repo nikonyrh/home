@@ -1,6 +1,16 @@
-#!/bin/bash
+#!/bin/bash -e
 
-set -e
+if ! [ `which ffmpeg 2>/dev/null` ] && [ `uname -s` != 'Linux' ]; then
+    >&2 echo "Warning: FFMPEG not found, trying a hard-coded path in Windows ;)"
+    FFMPEG=`find /c/nikon/vendor -name ffmpeg.exe | head -n1`
+else
+    FFMPEG=ffmpeg
+fi
+
+if ! [ -f "$FFMPEG" ]; then
+    >&2 echo "FFMPEG not found!" && exit 1
+fi
+
 fname=`echo "$1" | sed -r "s_.+/__" | sed -r "s/\.(.+)$/.concat.\1/"`
 
 if [ -f "$fname" ]; then
@@ -16,8 +26,7 @@ done
 
 sed -i -r "s_'.+/_'_" fnames.txt
 
-ffmpeg -f concat -i fnames.txt -c copy "$fname"
-# ffmpeg -i combined.mp4 -r 30 -c:v libx264 -strict -2 -crf 15 combined.out.mp4
+$FFMPEG -f concat -i fnames.txt -c copy "$fname"
 
 #rm fnames.txt
 

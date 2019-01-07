@@ -1,8 +1,20 @@
-#!/bin/bash
+#!/bin/bash -e
+
+if ! [ `which ffmpeg 2>/dev/null` ] && [ `uname -s` != 'Linux' ]; then
+    >&2 echo "Warning: FFMPEG not found, trying a hard-coded path in Windows ;)"
+    FFMPEG=`find /c/nikon/vendor -name ffmpeg.exe | head -n1`
+else
+    FFMPEG=ffmpeg
+fi
+
+if ! [ -f "$FFMPEG" ]; then
+    >&2 echo "FFMPEG not found!" && exit 1
+fi
 
 VIDEO=$1
 AUDIO=$2
 shift 2
+
 
 FPS=
 CUDA=
@@ -98,6 +110,7 @@ while (( "$#" )); do
         continue
     fi
     
-    taskset 127 ffmpeg $CUDA -i "$fname" $ARGS "$out"
+    #taskset 127
+    $FFMPEG $CUDA -i "$fname" $ARGS "$out"
 done
 
