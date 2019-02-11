@@ -117,7 +117,7 @@ if [ "$CUDA" = "" ]; then
     ARGS="$ARGS -vcodec lib$CODEC -strict -2 $VIDEO_Q $CLR_ARGS -movflags faststart $AUDIO_ARG $FPS $RES"
 else
     # ref. http://ntown.at/de/knowledgebase/cuda-gpu-accelerated-h264-h265-hevc-video-encoding-with-ffmpeg/
-    ARGS="$ARGS -c:v $CODEC $VIDEO_Q -pix_fmt yuv420p -movflags faststart $AUDIO_ARG $FPS $RES"
+    ARGS="$ARGS -c:v $CODEC $VIDEO_Q $CLR_ARGS -pix_fmt yuv420p -movflags faststart $AUDIO_ARG $FPS $RES"
 fi
 
 #echo $ARGS && exit 0
