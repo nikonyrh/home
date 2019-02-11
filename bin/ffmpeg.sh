@@ -11,8 +11,8 @@ if ! [ -f "$FFMPEG" ]; then
     >&2 echo "FFMPEG not found!" && exit 1
 fi
 
-VIDEO=$1
-AUDIO=$2
+VIDEO=$1  # With x265 I usually use 25 - 35, depending on the content and purpose
+AUDIO=$2  # 96 kbps should be fine, or put 0 if you don't want any sound at all
 shift 2
 
 
@@ -23,10 +23,15 @@ RES=
 TARGET_DIR=.
 ARGS=
 CLR_ARGS=
+FORCE=
 
 CONTINUE=1
 while (( "$#" )) && [ $CONTINUE = 1 ]; do
     case "$1" in
+        "-f")
+            FORCE=-f
+            shift
+            ;;
         "--fps")
             FPS="-r $2"
             shift 2
@@ -43,7 +48,7 @@ while (( "$#" )) && [ $CONTINUE = 1 ]; do
             fi
             shift 2
             ;;
-        "--resolution")
+        "--res")
             RES="-vf scale=$2:$3"
             shift 3
             ;;
@@ -76,19 +81,38 @@ if ! [ -f "$1" ]; then
     >&2 echo "File $1 not found!" && exit 1
 fi
 
-#VIDEO_MIN=$(($VIDEO - 1))
-#VIDEO_MAX=$(($VIDEO + 1))
-#VIDEO_Q="-rc vbr_hq -qmin:v $VIDEO_MIN -qmax:v $VIDEO_MAX"
+# This sets the video quality +/-1 of the target, produces smaller files for varying video content
+VIDEO_MIN=$(($VIDEO - 1))
+VIDEO_MAX=$(($VIDEO + 1))
+VIDEO_Q="-rc vbr_hq -qmin:v $VIDEO_MIN -qmax:v $VIDEO_MAX"
 
-VIDEO_Q="-crf $VIDEO"
+# I used to use a fixed quality, maybe an useful fall-back for older devices or something?
+#VIDEO_Q="-crf $VIDEO"
 
-if [ "$CUDA" = "" ]; then
-    ARGS="$ARGS -vcodec lib$CODEC -strict -2 $VIDEO_Q $CLR_ARGS -movflags faststart -b:a ${AUDIO}K $FPS $RES"
+# Ref. https://stackoverflow.com/a/46693766/3731823
+# Does not work?
+#ARGS="$ARGS -vf scale=2560:1440:force_original_aspect_ratio=decrease,pad=2560:1440:(ow-iw)/2:(oh-ih)/2,setsar=1"
+
+# ad-hoc slomo stuff, should make a command line argument
+#ARGS="$ARGS -vf setpts=0.025*PTS"
+#ARGS="$ARGS -vf setpts=0.016667*PTS"
+#ARGS="$ARGS -vf setpts=0.0125*PTS"
+
+# ad-hoc average filter, should make a command line argument
+#ARGS="$ARGS -vf tblend=all_mode=average"
+
+if [ "$AUDIO" = "0" ]; then
+    AUDIO_ARG="-an"
 else
-    # ref. http://ntown.at/de/knowledgebase/cuda-gpu-accelerated-h264-h265-hevc-video-encoding-with-ffmpeg/
-    ARGS="$ARGS -c:v $CODEC $VIDEO_Q -pix_fmt yuv420p -movflags faststart -b:a ${AUDIO}K $FPS $RES"
+    AUDIO_ARG="-b:a ${AUDIO}K"
 fi
 
+if [ "$CUDA" = "" ]; then
+    ARGS="$ARGS -vcodec lib$CODEC -strict -2 $VIDEO_Q $CLR_ARGS -movflags faststart $AUDIO_ARG $FPS $RES"
+else
+    # ref. http://ntown.at/de/knowledgebase/cuda-gpu-accelerated-h264-h265-hevc-video-encoding-with-ffmpeg/
+    ARGS="$ARGS -c:v $CODEC $VIDEO_Q -pix_fmt yuv420p -movflags faststart $AUDIO_ARG $FPS $RES"
+fi
 
 #echo $ARGS && exit 0
 
@@ -105,12 +129,13 @@ while (( "$#" )); do
     out=`echo "$fname" | sed -r "s/\.([^\.]+)/.out_$VIDEO.$CODEC.\1/"`
     out="$TARGET_DIR/$out"
 
-    if [ -f "$out" ]; then
+    if [ "$FORCE" == "" ] && [ -f "$out" ]; then
         echo "Skipping $fname ($out exists)"
         continue
     fi
     
+    # Limts to 6 CPU cores, if you want to give some rest on 2 of the 4 + HT cores ;)
     #taskset 127
-    $FFMPEG $CUDA -i "$fname" $ARGS "$out"
+    $FFMPEG $FORCE  $CUDA -i "$fname" $ARGS "$out"
 done
 
