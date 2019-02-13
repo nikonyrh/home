@@ -30,6 +30,7 @@ TARGET_DIR=.
 ARGS=
 CLR_ARGS=
 FORCE=
+T0="00:00:0.0"
 
 CONTINUE=1
 while (( "$#" )) && [ $CONTINUE = 1 ]; do
@@ -63,8 +64,12 @@ while (( "$#" )) && [ $CONTINUE = 1 ]; do
             mkdir -p $TARGET_DIR
             shift 2
             ;;
+        "--t0")
+            T0=$2
+            shift 2
+            ;;
         "--t")
-            ARGS="$ARGS -ss 00:00:0.0 -t $2"
+            ARGS="$ARGS -ss $T0 -t $2"
             shift 2
             ;;
         "-cuda")
