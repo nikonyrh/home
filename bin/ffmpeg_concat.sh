@@ -1,15 +1,21 @@
 #!/bin/bash -e
 
-if ! [ `which ffmpeg 2>/dev/null` ] && [ `uname -s` != 'Linux' ]; then
-    >&2 echo "Warning: FFMPEG not found, trying a hard-coded path in Windows ;)"
-    FFMPEG=`find /c/nikon/vendor -name ffmpeg.exe | head -n1`
-else
-    FFMPEG=ffmpeg
-fi
+# TODO: Is there a more standard way for cross-patform bash scripts?
+FFMPEG=`which ffmpeg || echo ''`
 
 if ! [ -f "$FFMPEG" ]; then
-    >&2 echo "FFMPEG not found!" && exit 1
+    if [ `uname -s` != 'Linux' ]; then
+        >&2 echo "Warning: FFMPEG not found, trying a hard-coded path in Windows ;)"
+        FFMPEG=`find /c/nikon/vendor -name ffmpeg.exe | head -n1`
+        
+        if ! [ -f "$FFMPEG" ]; then
+            >&2 echo "FFMPEG not found!" && exit 1
+        fi
+    else
+        >&2 echo "'ffmpeg' not found (expecting ffmpeg to be found from \$PATH)!" && exit 1
+    fi
 fi
+
 
 fname=`echo "$1" | sed -r "s_.+/__" | sed -r "s/\.(.+)$/.concat.\1/"`
 
