@@ -31,6 +31,9 @@ ARGS=
 CLR_ARGS=
 FORCE=
 T0="00:00:0.0"
+MOTION_BLUR=
+SLOMO=
+SLOMO_X=
 
 CONTINUE=1
 while (( "$#" )) && [ $CONTINUE = 1 ]; do
@@ -72,6 +75,15 @@ while (( "$#" )) && [ $CONTINUE = 1 ]; do
             ARGS="$ARGS -ss $T0 -t $2"
             shift 2
             ;;
+        "--slomo")
+            SLOMO=$2
+            shift 2
+            ;;
+        "-motionblur")
+            # TODO: Support for multiple "-vf" arguments
+            ARGS="$ARGS -vf tblend=all_mode=average"
+            shift
+            ;;
         "-cuda")
             CUDA='-hwaccel cuvid'
             
@@ -88,9 +100,6 @@ while (( "$#" )) && [ $CONTINUE = 1 ]; do
     esac
 done
 
-if ! [ -f "$1" ]; then
-    >&2 echo "File $1 not found!" && exit 1
-fi
 
 # This sets the video quality +/-1 of the target, produces smaller files for varying video content
 VIDEO_MIN=$(($VIDEO - 1))
@@ -104,13 +113,12 @@ VIDEO_Q="-rc vbr_hq -qmin:v $VIDEO_MIN -qmax:v $VIDEO_MAX"
 # Does not work?
 #ARGS="$ARGS -vf scale=2560:1440:force_original_aspect_ratio=decrease,pad=2560:1440:(ow-iw)/2:(oh-ih)/2,setsar=1"
 
-# ad-hoc slomo stuff, should make a command line argument
-#ARGS="$ARGS -vf setpts=0.025*PTS"
-#ARGS="$ARGS -vf setpts=0.016667*PTS"
-#ARGS="$ARGS -vf setpts=0.0125*PTS"
-
-# ad-hoc average filter, should make a command line argument
-#ARGS="$ARGS -vf tblend=all_mode=average"
+if [ "$SLOMO" != "" ]; then
+    #MULT=`octave --eval "1 / $SLOMO" | sed -r 's/.+ //'`
+    ARGS="$ARGS -vf setpts=$SLOMO*PTS"
+    SLOMO_X="${SLOMO}x"
+    AUDIO=0
+fi
 
 if [ "$AUDIO" = "0" ]; then
     AUDIO_ARG="-an"
@@ -127,6 +135,17 @@ fi
 
 #echo $ARGS && exit 0
 
+# Example: --glob jpg
+if [ "$1" == "--glob" ]; then
+    $FFMPEG $FORCE $CUDA -pattern_type glob -i "*.$2" $ARGS "video_$2.out_$VIDEO.$CODEC.mp4"
+    exit $?
+fi
+
+
+if ! [ -f "$1" ]; then
+    >&2 echo "File $1 not found!" && exit 1
+fi
+
 
 while (( "$#" )); do
     fname="$1"
@@ -137,7 +156,7 @@ while (( "$#" )); do
         continue
     fi
     
-    out=`echo "$fname" | sed -r "s/\.([^\.]+)/.out_$VIDEO.$CODEC.\1/"`
+    out=`echo "$fname" | sed -r "s/\.([^\.]+)/.out_$SLOMO_X$VIDEO.$CODEC.\1/"`
     out="$TARGET_DIR/$out"
 
     if [ "$FORCE" == "" ] && [ -f "$out" ]; then
@@ -147,6 +166,6 @@ while (( "$#" )); do
     
     # Limts to 6 CPU cores, if you want to give some rest on 2 of the 4 + HT cores ;)
     #taskset 127
-    $FFMPEG $FORCE  $CUDA -i "$fname" $ARGS "$out"
+    $FFMPEG $FORCE $CUDA -i "$fname" $ARGS "$out"
 done
 
