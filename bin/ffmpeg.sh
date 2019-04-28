@@ -34,6 +34,7 @@ T0="00:00:0.0"
 MOTION_BLUR=
 SLOMO=
 SLOMO_X=
+FNAME_RES=
 
 CONTINUE=1
 while (( "$#" )) && [ $CONTINUE = 1 ]; do
@@ -60,6 +61,7 @@ while (( "$#" )) && [ $CONTINUE = 1 ]; do
             ;;
         "--res")
             RES="-vf scale=$2:$3"
+            FNAME_RES=".${3}p"
             shift 3
             ;;
         "--dir")
@@ -156,7 +158,7 @@ while (( "$#" )); do
         continue
     fi
     
-    out=`echo "$fname" | sed -r "s/\.([^\.]+)/.out_$SLOMO_X$VIDEO.$CODEC.\1/"`
+    out=`echo "$fname" | sed -r "s/\.([^\.]+)/.out_$SLOMO_X$VIDEO$FNAME_RES.$CODEC.\1/"`
     out="$TARGET_DIR/$out"
 
     if [ "$FORCE" == "" ] && [ -f "$out" ]; then
