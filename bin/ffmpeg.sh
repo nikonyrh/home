@@ -153,11 +153,6 @@ while (( "$#" )); do
     fname="$1"
     shift
     
-    if [[ "$fname" = *.out.* ]]; then
-        echo "Skipping $fname (*.out.*)"
-        continue
-    fi
-    
     out=`echo "$fname" | sed -r "s/\.([^\.]+)/.out_$SLOMO_X$VIDEO$FNAME_RES.$CODEC.\1/"`
     out="$TARGET_DIR/$out"
 

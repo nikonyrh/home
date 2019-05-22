@@ -11,6 +11,11 @@ while (( "$#" )); do
     fname="$1"
     shift
     
+    if [[ "$fname" = *.hevc_nvenc.* ]]; then
+        #echo "Skipping $fname (*.hevc_nvenc.*)"
+        continue
+    fi
+    
     $SCRIPTPATH/ffmpeg.sh $VIDEO $AUDIO --codec x265 -cuda "$fname"
     mv "$fname" orig
 done
