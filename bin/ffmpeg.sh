@@ -36,6 +36,8 @@ SLOMO=
 SLOMO_X=
 FNAME_RES=
 
+#ARGS="$ARGS -vf colorlevels=rimax=0.902:gimax=0.902:bimax=0.902"
+
 CONTINUE=1
 while (( "$#" )) && [ $CONTINUE = 1 ]; do
     case "$1" in

@@ -32,7 +32,7 @@ while (( "$#" )); do
         continue
     fi
     
-    out=`echo "$fname" | sed -r "s/\.([^\.]+)/.out_slow_$VIDEO.$CODEC.\1/"`
+    out=`echo "$fname" | sed -r "s/\.([^\.]+)/.out_slow_${MULT}x_$VIDEO.$CODEC.\1/"`
     
     if [ -f "$out" ]; then
         echo "Skipping $fname ($out exists)"

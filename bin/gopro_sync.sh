@@ -10,5 +10,5 @@ else
     DATE=$1
 fi
 
-find /media/wrecked/gopro/DCIM/100GOPRO -name '*.MP4' -newermt "$DATE" | xargs cp -t "${2:-.}"
+find /media/$USER/*/DCIM/100GOPRO -name '*.MP4' -newermt "$DATE" | xargs cp -t "${2:-.}"
 
