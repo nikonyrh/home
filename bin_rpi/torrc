@@ -1,0 +1,14 @@
+# /etc/tor/torrc
+
+Nickname ?
+DisableDebuggerAttachment 0
+RunAsDaemon 1
+
+ControlPort 9051
+ORPort 9001
+DirPort 9030
+
+RelayBandwidthRate 90 MB
+RelayBandwidthBurst 95 MB
+ExitPolicy reject *:*
+

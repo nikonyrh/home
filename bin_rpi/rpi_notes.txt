@@ -1,0 +1,5 @@
+lsblk -p | grep -v loop
+dd bs=4M if=2020-02-13-raspbian-buster-full.img of=/dev/sdg conv=fsync
+
+echo 'deb https://deb.torproject.org/torproject.org stretch main' | sudo tee -a /etc/apt/sources.list
+
