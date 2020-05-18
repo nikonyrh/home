@@ -1,2 +1,3 @@
 #!/bin/bash
-sudo -u debian-tor arm
+sudo -u debian-tor nyx
+

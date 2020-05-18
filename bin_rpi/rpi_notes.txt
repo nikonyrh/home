@@ -1,5 +1,23 @@
+# https://www.raspberrypi.org/downloads/raspbian/
 lsblk -p | grep -v loop
 dd bs=4M if=2020-02-13-raspbian-buster-full.img of=/dev/sdg conv=fsync
 
-echo 'deb https://deb.torproject.org/torproject.org stretch main' | sudo tee -a /etc/apt/sources.list
+git clone https://github.com/nikonyrh/home.git github-home && cd github-home
+
+# https://www.reddit.com/r/TOR/comments/bsx1mw/how_can_i_install_tor_040x_on_a_raspberry_pi/
+sudo su -
+echo 'deb https://deb.torproject.org/torproject.org stretch main' | tee -a /etc/apt/sources.list
+echo 'deb-src https://deb.torproject.org/torproject.org stretch main' | tee -a /etc/apt/sources.list
+gpg --keyserver keys.gnupg.net --recv A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89
+gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | sudo apt-key add -
+apt build-dep tor deb.torproject.org-keyring
+exit
+
+mkdir ~/debian-packages && cd ~/debian-packagee && apt source tor
+cd tor-* && debuild -rfakeroot -uc -us && cd ..
+
+sudo su -
+dpkg -i tor_*.deb && cp ~/github-home/bin_rpi/torrc /etc/tor/torrc
+service tor stop && sleep 2 && service tor start
+apt-get install nyx && sudo -u debian-tor nyx
 
