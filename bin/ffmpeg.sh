@@ -155,7 +155,7 @@ while (( "$#" )); do
     fname="$1"
     shift
     
-    out=`echo "$fname" | sed -r "s/\.([^\.]+)/.out_$SLOMO_X$VIDEO$FNAME_RES.$CODEC.\1/"`
+    out=`echo "$fname" | sed -r "s/\.([^\.]+)/.out_$SLOMO_X$VIDEO$FNAME_RES.$CODEC.\1/" | sed -r 's/\.MP4/.mp4/'`
     out="$TARGET_DIR/$out"
 
     if [ "$FORCE" == "" ] && [ -f "$out" ]; then
