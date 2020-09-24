@@ -1,0 +1,23 @@
+# Prepare and encrypt subsets
+cd /storage/data
+mkdir -p /rapid/data/backup/Kuvat_8
+time ~/bin/aws/find_sha1sum.sh Kuvat/Upload_8 | tee /rapid/data/backup/Kuvat_8/Kuvat_8.sha1.txt
+time ~/bin/aws/encrypt_subsets.sh password /rapid/data/backup Kuvat/Upload_8
+
+# Split subsets
+cd /rapid/data/backup
+~/bin/aws/split.sh Kuvat_8
+~/bin/aws/find_etag.sh Kuvat_8 | tee Kuvat_8/Kuvat_8.etag.txt
+sha1sum Kuvat_8/*.zip* | tee Kuvat_8/Kuvat_8.sha1.aes.txt
+
+# Upload subsets
+~/bin/aws/upload_aes_parts.sh Kuvat_8/*.aes_p*
+
+# Clean-up and make sure everything was uploaded
+~/bin/aws/abort_incomplete.py
+~/bin/aws/upload_aes_parts.sh Kuvat_8/*.aes_p*
+
+# Aggregate SHA-1 and ETag txt files
+~/bin/aws/cp_txt.sh
+~/bin/aws/upload_index.sh
+

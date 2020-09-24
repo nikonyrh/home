@@ -14,34 +14,30 @@ echo "Target: $2"
 echo "Source: $3"
 echo ""
 
-for u in $3/Upload*/; do
-	S=`du -hs "$u" | cut -f1`
-	echo ""
-	echo "Total size of $u: $S"
+S=`du -hs "$3" | cut -f1`
+echo ""
+echo "Total size of $u: $S"
 
-	U=`echo $u | sed -r 's,/[^_]*,,g'`
-	AES="$2/$U/$U.sha1.aes.txt"
+AES=`echo "$2/$3.sha1.aes.txt" | sed -r 's-(/[^/]+)/Upload_([0-9]+)-\1_\2\1_\2-'`
+echo "$AES"
 
-	if [ -f "$AES" ]; then
-		echo "AES SHA-1 exists at $AES, skipping $U"
+if [ -f "$AES" ]; then
+	echo "AES SHA-1 exists at $AES, skipping $3"
+	exit
+fi
+
+for s in $3/subset_*; do
+	f=`echo $s | sed -r 's-([^/]+)/Upload_([0-9]+)/subset_(.)-\1_\2/\1_\2_\3-'`
+    f="$2/$f.zip.aes"
+
+	mkdir -p `dirname $f`
+
+	if [ -f "$f" ]; then
+		echo "Subset $s => $f (exists, skip)"
 		continue
 	fi
 
-	for s in ${u}subset_*/; do
-		f=`echo $s | sed -r 's,/[^_]*,,g'`
-		f="$2/$U/$f.zip.aes"
-
-		fDir=`dirname $f`
-		if [ ! -d "$fDir" ]; then
-			mkdir "$fDir"
-		fi
-
-		if [ -f "$f" ]; then
-			echo "Subset $s => $f (exists, skip)"
-			continue
-		fi
-
-		echo "Subset $s => $f"
-		~/bin/aws/encrypt_zip.sh "$s" "$1" > "$f"
-	done
+	echo "Subset $s => $f"
+	~/bin/aws/encrypt_zip.sh "$s" "$1" > "$f"
 done
+
