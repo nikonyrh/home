@@ -35,6 +35,7 @@ MOTION_BLUR=
 SLOMO=
 SLOMO_X=
 FNAME_RES=
+REVERSE=
 
 #ARGS="$ARGS -vf colorlevels=rimax=0.902:gimax=0.902:bimax=0.902"
 
@@ -99,6 +100,12 @@ while (( "$#" )) && [ $CONTINUE = 1 ]; do
             
             shift
             ;;
+        "-reverse")
+            # Ref. https://video.stackexchange.com/a/17739/23419
+            REVERSE="-vf reverse -af areverse"
+            
+            shift
+            ;;
         *)
             CONTINUE=0
     esac
@@ -131,11 +138,14 @@ else
 fi
 
 if [ "$CUDA" = "" ]; then
-    ARGS="$ARGS -vcodec lib$CODEC -strict -2 $VIDEO_Q $CLR_ARGS -movflags faststart $AUDIO_ARG $FPS $RES"
+    ARGS="$ARGS -vcodec lib$CODEC -strict -2 $VIDEO_Q $CLR_ARGS"
 else
     # ref. http://ntown.at/de/knowledgebase/cuda-gpu-accelerated-h264-h265-hevc-video-encoding-with-ffmpeg/
-    ARGS="$ARGS -c:v $CODEC $VIDEO_Q $CLR_ARGS -pix_fmt yuv420p -movflags faststart $AUDIO_ARG $FPS $RES"
+    ARGS="$ARGS -c:v $CODEC $VIDEO_Q $CLR_ARGS -pix_fmt yuv420p"
 fi
+
+ARGS="$ARGS -movflags faststart $AUDIO_ARG $FPS $RES"
+ARGS="$ARGS $REVERSE"
 
 #echo $ARGS && exit 0
 
@@ -155,7 +165,7 @@ while (( "$#" )); do
     fname="$1"
     shift
     
-    out=`echo "$fname" | sed -r "s/\.([^\.]+)/.out_$SLOMO_X$VIDEO$FNAME_RES.$CODEC.\1/" | sed -r 's/\.MP4/.mp4/'`
+    out=`echo "$fname" | sed -r "s/\.([^\.]+)/.out_$SLOMO_X$VIDEO$FNAME_RES.$CODEC_2.\1/" | sed -r 's/\.(MP4|MOV)/.mp4/' | sed -r 's_.+/__' | sed -r 's/\.+/./g'`
     out="$TARGET_DIR/$out"
 
     if [ "$FORCE" == "" ] && [ -f "$out" ]; then
