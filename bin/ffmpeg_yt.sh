@@ -14,10 +14,18 @@ while (( "$#" )) && [ $CONTINUE = 1 ]; do
             RES="$2 $3"
             shift 3
             ;;
+        "-orig-res")
+            RES=
+            shift
+            ;;
         *)
             CONTINUE=0
     esac
 done
 
-$BIN/ffmpeg.sh $VIDEO 192 --codec x265 -cuda --res $RES $@
+if [ "$RES" != "" ]; then
+    RES="--res $RES"
+fi
+
+$BIN/ffmpeg.sh $VIDEO 192 --codec x265 -cuda $RES $@
 

@@ -36,6 +36,7 @@ SLOMO=
 SLOMO_X=
 FNAME_RES=
 REVERSE=
+MV=
 
 #ARGS="$ARGS -vf colorlevels=rimax=0.902:gimax=0.902:bimax=0.902"
 
@@ -106,6 +107,11 @@ while (( "$#" )) && [ $CONTINUE = 1 ]; do
             
             shift
             ;;
+        "--mv")
+            mkdir -p "$2"
+            MV="$2"
+            shift 2
+            ;;
         *)
             CONTINUE=0
     esac
@@ -144,22 +150,28 @@ else
     ARGS="$ARGS -c:v $CODEC $VIDEO_Q $CLR_ARGS -pix_fmt yuv420p"
 fi
 
-ARGS="$ARGS -movflags faststart $AUDIO_ARG $FPS $RES"
-ARGS="$ARGS $REVERSE"
-
+ARGS="$ARGS -movflags faststart $AUDIO_ARG $RES"
 #echo $ARGS && exit 0
 
 # Example: --glob jpg
 if [ "$1" == "--glob" ]; then
-    $FFMPEG $FORCE $CUDA -pattern_type glob -i "*.$2" $ARGS "video_$2.out_$VIDEO.$CODEC.mp4"
+    FPS=`echo "$FPS" | sed -r 's/r/framerate/'`
+    $FFMPEG $FORCE $CUDA $FPS -pattern_type glob -i "*.$2" $ARGS "../video_$2.out_$VIDEO.$CODEC.mp4"
     exit $?
 fi
 
+# Ref. https://stackoverflow.com/a/30188897/3731823
+if [ "$1" == "--concat" ]; then
+    FPS=`echo "$FPS" | sed -r 's/r/framerate/'`
+    $FFMPEG $FORCE $CUDA $FPS -f concat -i "$2" $ARGS "video_$2.out_$VIDEO.$CODEC.mp4"
+    exit $?
+fi
 
 if ! [ -f "$1" ]; then
     >&2 echo "File $1 not found!" && exit 1
 fi
 
+ARGS="$ARGS $FPS $REVERSE"
 
 while (( "$#" )); do
     fname="$1"
@@ -168,13 +180,16 @@ while (( "$#" )); do
     out=`echo "$fname" | sed -r "s/\.([^\.]+)/.out_$SLOMO_X$VIDEO$FNAME_RES.$CODEC_2.\1/" | sed -r 's/\.(MP4|MOV)/.mp4/' | sed -r 's_.+/__' | sed -r 's/\.+/./g'`
     out="$TARGET_DIR/$out"
 
-    if [ "$FORCE" == "" ] && [ -f "$out" ]; then
-        echo "Skipping $fname ($out exists)"
-        continue
+    if [ ! -f "$out" ] || [ "$FORCE" != "" ]; then
+        # Limts to 6 CPU cores, if you want to give some rest on 2 of the 4 + HT cores ;)
+        # taskset 127
+        $FFMPEG $FORCE $CUDA -i "$fname" $ARGS "$out"
+    else
+        >&2 echo "Skipping $fname ($out exists)"
     fi
     
-    # Limts to 6 CPU cores, if you want to give some rest on 2 of the 4 + HT cores ;)
-    #taskset 127
-    $FFMPEG $FORCE $CUDA -i "$fname" $ARGS "$out"
+    if [ "$MV" != "" ]; then
+        mv -t "$MV" "$fname"
+    fi
 done
 
