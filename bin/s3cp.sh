@@ -1,6 +1,8 @@
 #!/bin/bash -e
 D=nikonyrh-public/misc/
 
+# STORAGE_CLASS=STANDARD
+
 while (( "$#" )); do
     F=`echo "$1" | sed -r 's_.+/__'`
     echo "https://s3-eu-west-1.amazonaws.com/$D$F"

@@ -13,11 +13,28 @@ gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | sudo apt-key add -
 apt build-dep tor deb.torproject.org-keyring
 exit
 
-mkdir ~/debian-packages && cd ~/debian-packagee && apt source tor
+mkdir ~/debian-packages && cd ~/debian-packages && apt source tor
 cd tor-* && debuild -rfakeroot -uc -us && cd ..
 
 sudo su -
 dpkg -i tor_*.deb && cp ~/github-home/bin_rpi/torrc /etc/tor/torrc
 service tor stop && sleep 2 && service tor start
 apt-get install nyx && sudo -u debian-tor nyx
+
+###########################
+
+# https://talk.plesk.com/threads/lets-encrypt-root-certificate-expiration-on-30-september-2021.362224/post-898881
+cp /etc/ca-certificates.conf ~/ca-certificates.conf.orig
+sudo nano /etc/ca-certificates.conf
+Change “mozilla/DST_Root_CA_X3.crt” in “!mozilla/DST_Root_CA_X3.crt” an save
+sudo update-ca-certificates
+
+# https://gitlab.torproject.org/tpo/core/debian/tor
+git clone https://gitlab.torproject.org/tpo/core/debian/tor.git
+cd tor
+git checkout tor-0.4.7.7
+./autogen.sh
+./configure
+time make -j3
+sudo make install
 

@@ -1,23 +1,22 @@
 # Prepare and encrypt subsets
 cd /storage/data
-mkdir -p /rapid/data/backup/Kuvat_11
-time ~/bin/aws/find_sha1sum.sh Kuvat/Upload_11 | tee /rapid/data/backup/Kuvat_11/Kuvat_11.sha1.txt
-time ~/bin/aws/encrypt_subsets.sh password /rapid/data/backup Kuvat/Upload_11
+mkdir -p /rapid/data/backup/Kuvat_14
+time ~/bin/aws/find_sha1sum.sh Kuvat/Upload_14 | tee /rapid/data/backup/Kuvat_14/Kuvat_14.sha1.txt
+time ~/bin/aws/encrypt_subsets.sh password /rapid/data/backup Kuvat/Upload_14
 
 # Split subsets
 cd /rapid/data/backup
-time ~/bin/aws/split.sh Kuvat_11
-time ~/bin/aws/find_etag.sh Kuvat_11 | tee Kuvat_11/Kuvat_11.etag.txt
-time sha1sum Kuvat_11/*.zip* | tee Kuvat_11/Kuvat_11.sha1.aes.txt
+time ~/bin/aws/split.sh Kuvat_14
+time ~/bin/aws/find_etag.sh Kuvat_14 | tee Kuvat_14/Kuvat_14.etag.txt
+time sha1sum Kuvat_14/*.zip* | tee Kuvat_14/Kuvat_14.sha1.aes.txt
 
 # Upload subsets
-time ~/bin/aws/upload_aes_parts.sh Kuvat_11/*.aes_p*
+time ~/bin/aws/upload_aes_parts.sh Kuvat_14/*.aes_p*
 
 # Clean-up and make sure everything was uploaded
 ~/bin/aws/abort_incomplete.py
-~/bin/aws/upload_aes_parts.sh Kuvat_11/*.aes_p*
+~/bin/aws/upload_aes_parts.sh Kuvat_14/*.aes_p*
 
 # Aggregate SHA-1 and ETag txt files
-~/bin/aws/cp_txt.sh
-~/bin/aws/upload_index.sh
+~/bin/aws/cp_txt.sh && ~/bin/aws/upload_index.sh
 

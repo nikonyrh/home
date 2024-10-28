@@ -1,7 +1,12 @@
 #!/bin/bash -e
 
-# TODO: Is there a more standard way for cross-patform bash scripts?
-FFMPEG=`which ffmpeg || echo ''`
+# TODO: Is there a more standard way for cross-patform bash scripts to find binaries?
+if [ -f /usr/bin/ffmpeg ]; then
+    # My anaconda env has some obscure FFMPEG version, trying to avoid it!
+    FFMPEG=/usr/bin/ffmpeg
+else
+    FFMPEG=`which ffmpeg || echo ''`
+fi
 
 if ! [ -f "$FFMPEG" ]; then
     if [ `uname -s` != 'Linux' ]; then
@@ -180,7 +185,12 @@ while (( "$#" )); do
     out=`echo "$fname" | sed -r "s/\.([^\.]+)/.out_$SLOMO_X$VIDEO$FNAME_RES.$CODEC_2.\1/" | sed -r 's/\.(MP4|MOV)/.mp4/' | sed -r 's_.+/__' | sed -r 's/\.+/./g'`
     out="$TARGET_DIR/$out"
 
-    if [ ! -f "$out" ] || [ "$FORCE" != "" ]; then
+    if [ ! -s "$out" ] || [ "$FORCE" != "" ]; then
+        # It is an empty file
+        if [ -f "$out" ]; then
+            rm "$out"
+        fi
+
         # Limts to 6 CPU cores, if you want to give some rest on 2 of the 4 + HT cores ;)
         # taskset 127
         $FFMPEG $FORCE $CUDA -i "$fname" $ARGS "$out"
@@ -192,4 +202,5 @@ while (( "$#" )); do
         mv -t "$MV" "$fname"
     fi
 done
+
 

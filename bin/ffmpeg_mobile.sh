@@ -11,7 +11,7 @@ while (( "$#" )); do
     fname="$1"
     shift
     
-    if [[ "$fname" = *.hevc_nvenc.* ]]; then
+    if [[ "$fname" = *.out_25.* ]]; then
         #echo "Skipping $fname (*.hevc_nvenc.*)"
         continue
     fi

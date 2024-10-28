@@ -27,5 +27,6 @@ if [ "$RES" != "" ]; then
     RES="--res $RES"
 fi
 
+# $BIN/ffmpeg.sh $VIDEO 192 $RES $@
 $BIN/ffmpeg.sh $VIDEO 192 --codec x265 -cuda $RES $@
 

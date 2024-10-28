@@ -17,10 +17,10 @@ if ! [ -f "$FFMPEG" ]; then
 fi
 
 
-fname=`echo "$1" | sed -r "s_.+/__" | sed -r "s/\.(.+)$/.concat.\1/"`
+out=`echo "$1" | sed -r "s_.+/__" | sed -r "s/\.(.+)$/.concat.\1/"`
 
-if [ -f "$fname" ]; then
-	>&2 echo "$fname exists!" && exit 1
+if [ -f "$out" ]; then
+	>&2 echo "$out exists!" && exit 1
 fi
 
 echo '' > fnames.txt
@@ -30,9 +30,7 @@ while (( "$#" )); do
     shift
 done
 
-sed -i -r "s_'.+/_'_" fnames.txt
+# sed -i -r "s_'.+/_'_" fnames.txt
 
-$FFMPEG -f concat -i fnames.txt -c copy "$fname"
-
-#rm fnames.txt
+$FFMPEG -f concat -i fnames.txt -c copy "$out"
 
